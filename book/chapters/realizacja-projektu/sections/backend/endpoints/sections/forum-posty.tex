@@ -1,0 +1,39 @@
+%! Author = Mateusz
+%! Date = 30/11/2025
+
+\subsubsection{Forum – posty}
+\label{subsubsec:forum-posty}
+
+\cardendpoint
+{EP05}
+{/public/post/\{postId\}}
+{Pobierz szczegółowe informacje o poście}
+{%
+    \begin{tabitemize}
+        \item \textbf{postId}: Long (identyfikator posta w ścieżce URL)
+    \end{tabitemize}
+}
+{Brak}
+{200 OK, 404 Not Found}
+{%
+    \begin{tabitemize}
+        \item \textbf{PostDetailsDto}, zawiera:
+        \begin{itemize}
+            \item \textbf{id}: Long (identyfikator posta)
+            \item \textbf{title}: String (tytuł posta)
+            \item \textbf{content}: String (pełna treść posta)
+            \item \textbf{category}: ForumCategoryDto (kategoria forum, do której należy post)
+            \item \textbf{tags}: List<ForumTagDto> (lista tagów przypisanych do posta)
+            \item \textbf{author}: AuthorDto (dane autora posta)
+            \item \textbf{isAuthor}: Boolean (czy bieżący użytkownik jest autorem posta)
+            \item \textbf{isFollowed}: Boolean (czy bieżący użytkownik obserwuje ten post)
+            \item \textbf{publishDate}: LocalDateTime (data i godzina publikacji posta)
+            \item \textbf{views}: Integer (liczba wyświetleń posta)
+            \item \textbf{upVotes}: Integer (liczba głosów w górę na post)
+            \item \textbf{downVotes}: Integer (liczba głosów w dół na post)
+            \item \textbf{isUpVoted}: Boolean (czy bieżący użytkownik oddał głos w górę na post)
+            \item \textbf{isDownVoted}: Boolean (czy bieżący użytkownik oddał głos w dół na post)
+            \item \textbf{commentsCount}: Integer (łączna liczba komentarzy pod postem)
+        \end{itemize}
+    \end{tabitemize}
+}

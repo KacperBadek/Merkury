@@ -1,0 +1,150 @@
+%! Author = Adam
+%! Date = 30/12/2025
+
+\subsection{Czat}
+\label{subsec:chat-frontend}
+
+\newcommand{\chatimplfig}[1]{./attachments/implementacja-frontendu/czat/#1}
+
+W niniejszym rozdziale przedstawiono implementację modułu czatu po stronie \glslink{frontend}{frontendu}. \newline
+Czat stanowi jeden z kluczowych elementów aplikacji, zapewniając komunikację w wariancie rozmów prywatnych
+oraz grupowych.
+
+Na główne \glslink{react-component}{komponenty} modułu składają się:
+\begin{itemize}
+    \item \texttt{ChatsPage} -- główny kontener układu,
+    \item \texttt{ChatList} oraz \texttt{ListedChat} -- \glslink{react-component}{komponenty} odpowiedzialne za prezentację i obsługę listy rozmów,
+    \item \texttt{ChatTopBar}, \texttt{ChatMessagingWindow}, \texttt{ChatBottomBar} -- elementy składające się na okno konwersacji,
+    \item \texttt{EmojiGifWindowWrapper} wraz z \texttt{EmojiWindow} i \texttt{GifWindow} -- panel wyboru \glslink{emoji}{emoji}/\glslink{gif}{GIF-ów},
+    \item \texttt{GroupChatParticipantsSideBar} -- panel listy uczestników rozmowy grupowej.
+\end{itemize}
+
+\subsubsection{ChatsPage -- główny kontener modułu}
+
+\begin{itemize}
+    \item \glslink{react-component}{Komponent} \texttt{ChatsPage} jest nadrzędnym kontenerem widoku czatu.
+    \item Odpowiada za rozłożenie interfejsu na trzy sekcje:
+    \begin{enumerate}
+        \item lewy panel z listą rozmów,
+        \item centralne okno konwersacji,
+        \item opcjonalny panel boczny widoczny wyłącznie dla czatów grupowych.
+    \end{enumerate}
+\end{itemize}
+
+\glslink{stan}{Stan} wyboru rozmowy oraz widoczność panelu bocznego pobierane są ze \glslink{stan}{stanu} globalnego \glslink{redux}{Redux}.
+
+\subsubsection{Lista czatów}
+
+\paragraph{Komponent ChatList}
+
+\glslink{react-component}{Komponent} \texttt{ChatList} odpowiada za pobieranie oraz prezentację listy rozmów użytkownika.
+Dane są ładowane z \glslink{backend}{backendu} przy użyciu \glslink{hook}{hook'a}
+\texttt{useInfiniteQuery} z \glslink{tanstack-query}{TanStack Query}.
+Zaimplementowano mechanizm \glslink{infinite-scroll}{przewijania nieskończonego},
+który doładowuje kolejne strony wyników, gdy \glslink{sentinel}{element-strażnik} pojawi się na ekranie użytkownika.
+W tym celu użyto mechanizmu \glslink{intersection-observer}{Intersection Observer}.
+
+Po każdorazowym pobraniu strony dane są mapowane do lokalnego formatu i zapisywane w \glslink{redux}{Redux},
+dzięki czemu \glslink{stan}{stan} listy rozmów jest współdzielony z innymi komponentami modułu.
+Dodatkowo przy pierwszym renderowaniu, jeżeli użytkownik nie ma wybranego czatu,
+ustawiana jest domyślna rozmowa.
+
+W trakcie ładowania wyświetlane są elementy typu \glslink{skeleton-loader}{skeleton loader},
+natomiast w przypadku doładowywania kolejnych stron prezentowany jest wskaźnik ładowania.
+
+\paragraph{Komponent ListedChat}
+
+\glslink{react-component}{Komponent} \texttt{ListedChat} reprezentuje pojedynczy element listy rozmów.
+Wyświetla podstawowe informacje o czacie: nazwę, awatar, treść ostatniej wiadomości oraz czas jej wysłania.
+\glslink{react-component}{Komponent} wizualnie rozróżnia stan:
+\begin{itemize}
+    \item aktualnie wybranego czatu,
+    \item czatu posiadającego nowe, nieodczytane wiadomości,
+    \item czatu nieaktywnego.
+\end{itemize}
+
+Kliknięcie w element listy aktualizuje identyfikator wybranego czatu w \glslink{redux}{Redux} i
+jednocześnie czyści znacznik nowych wiadomości dla danej rozmowy.
+
+\subsubsection{Okno konwersacji}
+
+\paragraph{Komponent ChatContent}
+
+\glslink{react-component}{Komponent} \texttt{ChatContent} pełni rolę kontenera na \glslink{react-component}{komponenty} okna konwersacji.
+Jego zadaniem jest pobranie z \glslink{redux}{Redux} identyfikatora aktualnie wybranego czatu, a następnie odczytanie
+pełnych danych rozmowy na podstawie selektora \newline \texttt{selectChatById}.
+
+\texttt{ChatContent} składa okno rozmowy z trzech części:
+paska nagłówka (\texttt{ChatTopBar}), listy wiadomości (\texttt{ChatMessagingWindow}) oraz paska tworzenia wiadomości
+\newline (\texttt{ChatBottomBar}).
+
+\paragraph{Komponent ChatTopBar}
+
+\glslink{react-component}{Komponent} \texttt{ChatTopBar} pełni rolę nagłówka konwersacji.
+W zależności od typu rozmowy (prywatna/grupowa) udostępnia różne akcje:
+dla czatu prywatnego umożliwia przejście do profilu rozmówcy, natomiast w czacie grupowym
+udostępnia przełącznik panelu bocznego oraz operacje zarządzania rozmową.
+Część funkcjonalności realizowana jest w \glslink{modal}{oknach modalnych}
+(tworzenie nowego czatu grupowego, edycja czatu lub dodawanie uczestników).
+
+\paragraph{Komponent ChatMessagingWindow}
+
+\glslink{react-component}{Komponent} \texttt{ChatMessagingWindow} odpowiada za wyświetlanie wiadomości
+w obrębie wybranej konwersacji. Dane pobierane z \glslink{backend}{backendu} przy użyciu
+\texttt{useInfiniteQuery}.
+Wiadomości są renderowane w układzie „od dołu” (ostatnia wiadomość na końcu),
+a doładowywanie starszych fragmentów odbywa się po przewinięciu w górę.
+
+Dodatkowo komponent porządkuje wiadomości w czytelny sposób:
+\begin{itemize}
+    \item wstawia separatory dat przy zmianie dnia,
+    \item grupuje wiadomości tego samego autora wysłane w krótkim odstępie czasu.
+\end{itemize}
+
+Okno konwersacji współpracuje również z aktualizacją danych w czasie rzeczywistym.
+Po odebraniu nowej wiadomości jest ona natychmiast wyświetlana.
+
+\paragraph{Komponent ChatBottomBar}
+
+\glslink{react-component}{Komponent} \texttt{ChatBottomBar} realizuje wysyłanie wiadomości tekstowych,
+załączników oraz interakcję z oknami wyboru \glslink{emoji}{emoji} i \glslink{gif}{GIF-ów}.
+Wysyłanie wiadomości w czasie rzeczywistym odbywa się z użyciem \glslink{websocket}{WebSocket}
+oraz protokołu \glslink{stomp}{STOMP}.
+Obsługa załączników obejmuje wybór wielu plików oraz ich podgląd (jeżeli są zdjęciem).
+
+\subsubsection{Okna emoji i GIF}
+
+\paragraph{Komponent EmojiGifWindowWrapper}
+
+\glslink{react-component}{Komponent} \texttt{EmojiGifWindowWrapper} stanowi warstwę pośrednią,
+która w zależności od aktualnego trybu wyświetla jedno z dwóch okien:
+\texttt{EmojiWindow} lub \texttt{GifWindow}.
+
+\paragraph{Komponent EmojiWindow}
+
+\glslink{react-component}{Komponent} \texttt{EmojiWindow} integruje zewnętrzny selektor \glslink{emoji}{emoji}
+i umożliwia wyszukiwanie oraz wybór emotikonów.
+Po kliknięciu \glslink{emoji}{emoji}, \glslink{react-component}{komponent} dopisuje go do aktualnie budowanej treści wiadomości.
+
+\paragraph{Komponent GifWindow}
+
+\glslink{react-component}{Komponent} \texttt{GifWindow} umożliwia wyszukiwanie oraz wysyłanie \glslink{gif}{GIF-ów}
+z wykorzystaniem integracji z dostawcą \glslink{tenor}{Tenor} po stronie \glslink{backend}{backendu}.
+Widok udostępnia dwa scenariusze:
+\begin{itemize}
+    \item prezentację popularnych kategorii,
+    \item wyszukiwanie \glslink{gif}{GIF-ów} po frazie.
+\end{itemize}
+
+Wyszukiwanie realizowane jest przy użyciu \texttt{useInfiniteQuery}.
+W przypadku kliknięcia w wybrany \glslink{gif}{GIF} jego adres \glslink{url}{URL} jest przesyłany jako treść wiadomości
+przez \glslink{websocket}{WebSocket}/\glslink{stomp}{STOMP}, a okno selektora zostaje zamknięte.
+
+\subsubsection{Lista uczestników czatu grupowego}
+
+\paragraph{Komponent GroupChatParticipantsSideBar}
+
+\glslink{react-component}{Komponent} \texttt{GroupChatParticipantsSideBar} jest panelem bocznym,
+który pojawia się wyłącznie dla rozmów grupowych.
+Panel prezentuje listę uczestników czatu wraz z awatarem i nazwą użytkownika,
+a kliknięcie w wybraną osobę przekierowuje do jej profilu.

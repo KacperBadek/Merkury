@@ -1,0 +1,159 @@
+%! Author = Mateusz
+%! Date = 19/12/2025
+
+\subsection{Sidebar}
+\label{subsec:sidebar-frontend}
+
+\glslink{sidebar}{Sidebar} stanowi główny komponent nawigacyjny aplikacji.
+Implementacja obejmuje:
+\begin{itemize}
+    \item zestaw komponentów interfejsu odpowiedzialnych za renderowanie pozycji, podmenu, tooltipów oraz obsługę
+    interakcji użytkownika,
+    \item pliki pomocnicze służące do budowania listy linków i rozpoznawania typów elementów nawigacji
+    (\texttt{functions}, \texttt{sidebarLinks}),
+    \item definicje typów i interfejsów opisujących strukturę pozycji paska bocznego (\texttt{link}),
+    \item moduł \texttt{Redux} przechowujący stan rozwinięcia paska (\texttt{sidebar.ts}).
+\end{itemize}
+
+\subsubsection{Komponenty}
+
+\textbf{\texttt{Sidebar}} \\
+Komponent odpowiada za złożenie całej nawigacji oraz sterowanie jej zachowaniem.
+Wykorzystywane są \glslink{hook}{hooki} \texttt{useDarkMode} (obsługa motywu), \newline \texttt{useSelectorTyped}
+(odczyt \texttt{isLogged} oraz \texttt{isSidebarOpen}) oraz \texttt{useLocation} (sprawdzenie aktualnej ścieżki).
+Na podstawie lokalizacji ustalany jest tryb pozycjonowania: dla stron o układzie „sticky”
+(panel użytkownika, czat, strona główna) stosowana jest klasa \texttt{xl:sticky}, w pozostałych przypadkach \texttt{absolute}.
+Zestawy linków nawigacyjnych budowane są w pliku \texttt{sidebarLinks} (opis w podrozdz. \ref{subsubsec:sidebar-links-files}).
+
+W strukturze komponentu renderowane są:
+\begin{itemize}
+    \item \texttt{SidebarToggleButton},
+    \item sekcja nawigacyjna: \texttt{SidebarSection} $\rightarrow$ \texttt{SidebarList} (linki główne),
+    \item sekcja opcji: \texttt{SidebarSection} $\rightarrow$ \texttt{SidebarList} (akcje i opcje).
+\end{itemize}
+
+\textbf{\texttt{Tooltip}} \\
+Komponent służy do prezentacji nazwy pozycji oraz (w przypadku submenu) listy pozycji podrzędnych, gdy pasek
+boczny pozostaje zwinięty.
+Po kliknięciu w element następuje przejście do przypisanej podstrony.
+
+\textbf{\texttt{SidebarToggleButton}} \\
+Komponent wyświetla przycisk zwijania/rozwijania paska bocznego.
+Po kliknięciu wywoływana jest akcja \texttt{toggleSidebar} z \glslink{redux}{\texttt{Redux}}.
+Na mniejszych ekranach (poniżej \texttt{xl} czyli 1280px) prezentowany jest również napis „Merkury”.
+
+\textbf{\texttt{SidebarSection}} \\
+Komponent grupuje listy nawigacyjne przekazane przez \texttt{children} oraz opcjonalnie dodaje separator u
+góry lub na dole.
+
+\textbf{\texttt{SidebarList}} \\
+Komponent renderuje listę elementów nawigacji poprzez mapowanie na \texttt{SidebarItem}.
+
+\textbf{\texttt{SidebarLabel}} \\
+Komponent odpowiada za wyświetlenie etykiety pozycji, gdy pasek jest rozwinięty.
+Dla płynnej animacji zastosowano \texttt{AnimatePresence} oraz \texttt{motion.p}.
+W przypadku \texttt{submenu} z niepustą listą dzieci prezentowana jest dodatkowo ikona
+strzałki.
+
+\textbf{\texttt{SidebarIcon}} \\
+Komponent odpowiada za prezentację ikony danej pozycji.
+W przypadku zwiniętego paska i pozycji typu \texttt{submenu} ikona stanowi \texttt{NavLink}
+(umożliwia przejście do strony nadrzędnej), natomiast dla \texttt{link} i \texttt{action}
+zwracana jest sama ikona.
+
+\textbf{\texttt{SidebarItemSubmenuLink}} \\
+Komponent renderuje elementy podrzędne submenu jako \texttt{NavLink}.
+Przy każdym kliknięciu wywoływana jest akcja \texttt{closeSidebar}, która zwija pasek wyłącznie na
+ekranach o szerokości mniejszej niż \texttt{1280px}.
+
+\textbf{\texttt{SidebarItemSubmenu}} \\
+Komponent odpowiada za obsługę pozycji typu \texttt{submenu}.
+Zastosowano:
+\begin{itemize}
+    \item \texttt{useToggleState} do przełączania stanu rozwinięcia,
+    \item \texttt{useState} do przechowywania nazwy aktualnie otwartego submenu (w celu utrzymania zasady „jedno submenu otwarte naraz”),
+    \item \texttt{useLocation} oraz \texttt{useEffect} do automatycznego rozwinięcia submenu, gdy aktywna jest jedna z podstron potomnych.
+\end{itemize}
+Pozycja submenu renderowana jest jako przycisk zawierający \texttt{SidebarItemContent}, a lista elementów potomnych
+pojawia się animacyjnie (przez \texttt{AnimatePresence} i \texttt{motion.div}) tylko wtedy, gdy pasek jest rozwinięty.
+
+\textbf{\texttt{SidebarItemLink}} \\
+Komponent renderuje pojedynczą pozycję typu \texttt{link} jako \texttt{NavLink} zawierający \newline \texttt{SidebarItemContent}.
+Dodatkowo, po kliknięciu wywoływana jest akcja \texttt{closeSidebar} (działająca tylko dla szerokości poniżej
+\texttt{1280px}).
+
+\textbf{\texttt{SidebarItemContent}} \\
+Komponent stanowi wspólne „wnętrze” elementów \texttt{SidebarItem}.
+Zawiera \texttt{SidebarIcon}, warunkowo \texttt{Tooltip} (gdy pasek jest zwinięty i aktywny jest \glslink{stan}{stan} tooltipa)
+oraz \texttt{SidebarLabel}.
+
+\textbf{\texttt{SidebarItemAction}} \\
+Komponent obsługuje pozycje typu \texttt{action}, które nie prowadzą do \glslink{routing}{routingu}, lecz uruchamiają funkcje.
+Zaimplementowano akcję wylogowania (wywołanie \texttt{logout} oraz aktualizacja \glslink{stan}{stanu} konta)
+oraz przełączanie motywu poprzez \texttt{onChangeTheme}.
+Renderowany jest przycisk zawierający \texttt{SidebarItemContent}.
+
+\textbf{\texttt{SidebarItem}} \\
+Komponent wybiera właściwy podtyp elementu na podstawie pola \texttt{type}.
+Wykorzystywany jest \glslink{hook}{hook} \texttt{useBoolean} do sterowania widocznością tooltipa oraz \texttt{useLocation} i
+\texttt{useEffect} do ukrycia tooltipa po zmianie ścieżki.
+Dobór implementacji realizowany jest przez instrukcję \texttt{switch}:
+\texttt{submenu} $\rightarrow$ \texttt{SidebarItemSubmenu}, \texttt{action} $\rightarrow$ \texttt{SidebarItemAction},
+\texttt{link} $\rightarrow$ \texttt{SidebarItemLink}.
+
+\subsubsection{Pliki pomocnicze}
+\label{subsubsec:sidebar-links-files}
+
+\textbf{\texttt{functions}} \\
+Plik zawiera funkcje typu \emph{type guard} umożliwiające rozróżnienie wariantów linków:
+\texttt{isSidebarSubmenu}, \texttt{isSidebarAction} oraz \texttt{isSidebarLink}.
+
+\textbf{\texttt{sidebarLinks}} \\
+Plik definiuje strukturę nawigacji w postaci obiektów:
+\texttt{staticLinks}, \texttt{userLoggedLinks} oraz \texttt{getOptionsLinks}.
+Zależnie od \glslink{stan}{stanu} zalogowania (\texttt{isLogged}) generowane są różne zestawy pozycji:
+\begin{itemize}
+    \item dla użytkownika niezalogowanego: strona główna, mapa oraz forum (strona główna forum, regulamin),
+    \item dla użytkownika zalogowanego: dodatkowo lista obserwowanych postów na forum, czat oraz panel użytkownika
+    \item (submenu „account” z podstronami profilu, ustawień itd.).
+\end{itemize}
+Sekcja opcji (\texttt{getOptionsLinks}) zawiera:
+\begin{itemize}
+    \item pozycję logowania lub wylogowania (zależnie od \texttt{isLogged}),
+    \item przełączenie motywu jasny/ciemny (zależnie od \texttt{isDark}).
+\end{itemize}
+
+\textbf{\texttt{link}} \\
+Plik z typami definiuje \texttt{LinkType} oraz interfejsy: \texttt{BaseLink}, \texttt{SidebarLink},
+\newline \texttt{SidebarSubmenuLink}, \texttt{SidebarSubmenu}, \texttt{SidebarAction}.
+
+\subsubsection{Redux}
+
+\glslink{stan}{Stan} paska bocznego utrzymywany jest w module \texttt{Redux} w pliku \texttt{sidebar.ts}.
+Przechowywana jest wyłącznie flaga \texttt{isOpen} informująca o \glslink{stan}{stanie} rozwinięcia.
+Zdefiniowano:
+\begin{itemize}
+    \item reducer \texttt{setIsSidebarOpen} (jawne ustawienie wartości),
+    \item reducer \texttt{toggleSidebar} (przełączenie stanu),
+    \item thunk \texttt{closeSidebar}, który zwija pasek wyłącznie dla szerokości mniejszej niż \texttt{1280px}.
+\end{itemize}
+Rozwiązanie to umożliwia automatyczne zwijanie paska po kliknięciu w link na urządzeniach mobilnych, bez wpływu na
+zachowanie na dużych ekranach.
+
+\subsubsection{Użycie w układzie aplikacji}
+
+\textbf{\texttt{Layout}} \\
+Stanowi szkielet widoków aplikacji: renderuje \texttt{Sidebar} oraz część
+główną (\texttt{main}) zawierającą \texttt{MobileBar}, listę powiadomień oraz \texttt{Outlet}
+(miejsce wstrzyknięcia aktualnej podstrony przez router).
+Dla strony mapy ustawiany jest układ \texttt{relative}, a dla pozostałych widoków układ elastyczny (\texttt{flex}).
+Dodatkowo, w \texttt{useEffect} wykrywana jest nawigacja do ścieżek panelu konta; na ekranach o szerokości
+co najmniej \texttt{1280px} pasek boczny jest wówczas automatycznie rozwijany poprzez
+\newline \texttt{dispatch(sidebarAction.setIsSidebarOpen(true))}.
+
+\textbf{\texttt{MobileBar}} \\
+Wyświetlany jest wyłącznie poniżej progu \texttt{xl} (1280px) (klasa \texttt{xl:hidden}).
+Stanowi górny pasek nawigacyjny na urządzeniach mobilnych: zawiera przycisk z ikoną menu, który przełącza
+\glslink{stan}{stan} paska bocznego (\texttt{toggleSidebar}), oraz tytuł aplikacji „Merkury”.
+Dzięki umieszczeniu w części głównej (\texttt{main}) komponent pozostaje widoczny nad zawartością strony,
+jednocześnie nie wpływając na układ desktopowy.

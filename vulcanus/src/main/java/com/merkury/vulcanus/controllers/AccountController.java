@@ -1,8 +1,6 @@
 package com.merkury.vulcanus.controllers;
 
 import com.merkury.vulcanus.exception.exceptions.*;
-import com.merkury.vulcanus.model.dtos.GetUserBasicInfoDto;
-import com.merkury.vulcanus.model.dtos.user.UserEditDataDto;
 import com.merkury.vulcanus.model.dtos.user.UserLoginDto;
 import com.merkury.vulcanus.model.dtos.user.UserPasswordResetDto;
 import com.merkury.vulcanus.model.dtos.user.UserRegisterDto;
@@ -16,8 +14,7 @@ import com.merkury.vulcanus.model.enums.EmailTemplate;
 import com.merkury.vulcanus.model.enums.EmailTitle;
 import com.merkury.vulcanus.model.enums.EmailVariable;
 import com.merkury.vulcanus.model.dtos.EmailDto;
-import com.merkury.vulcanus.observability.counter.invocations.InvocationsCounter;
-import jakarta.servlet.http.HttpServletRequest;
+import com.merkury.vulcanus.security.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import com.merkury.vulcanus.config.properties.UrlsProperties;
 import jakarta.validation.Valid;
@@ -38,7 +35,6 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@InvocationsCounter
 public class AccountController {
     @Value("${email.sending.enabled}")
     private boolean isEmailSendingEnabled;
@@ -47,6 +43,7 @@ public class AccountController {
     private final UrlsProperties urlsProperties;
     private final PasswordResetTokenService passwordResetTokenService;
     private final RestartPasswordService restartPasswordService;
+    private final CustomUserDetailsService customUserDetailsService;
 
     /**
      * @param userRegisterDto the user registration details containing:
@@ -107,7 +104,7 @@ public class AccountController {
     }
 
     @GetMapping("/account/login-success")
-    public RedirectView loginSuccess(HttpServletResponse response, OAuth2AuthenticationToken oAuth2Token) throws EmailTakenException, UsernameTakenException, EmailNotFoundException, UsernameNotFoundException, InvalidProviderException {
+    public RedirectView loginSuccess(HttpServletResponse response, OAuth2AuthenticationToken oAuth2Token) throws EmailTakenException, UsernameTakenException, EmailNotFoundException, UsernameNotFoundException, InvalidProviderException, UserNotFoundException {
         log.info("Start handling oAuth2 user...");
         var loginResponseDto = accountService.handleOAuth2User(oAuth2Token, response);
         log.info("Successfully handled oAuth2 user!");
@@ -134,7 +131,7 @@ public class AccountController {
     }
 
     @PostMapping("/public/account/forgot-password")
-    public ResponseEntity<String> forgotPasswordSendEmail(@RequestBody String email) throws InvalidProviderException {
+    public ResponseEntity<String> forgotPasswordSendEmail(@RequestBody String email) throws InvalidProviderException, UserNotFoundException {
         log.info("Start handling forgot password procedure...");
         UserEntity user = restartPasswordService.getUserByEmail(email);
         restartPasswordService.abortIfOauthUser(user);
@@ -159,7 +156,7 @@ public class AccountController {
     }
 
     @PostMapping("/public/account/set-new-password")
-    public ResponseEntity<String> setNewPassword(@Valid @RequestBody UserPasswordResetDto userPasswordResetDto) throws PasswordResetTokenIsInvalidException, PasswordResetTokenNotFoundException {
+    public ResponseEntity<String> setNewPassword(@Valid @RequestBody UserPasswordResetDto userPasswordResetDto) throws PasswordResetTokenIsInvalidException, PasswordResetTokenNotFoundException, UserNotFoundException {
         log.info("Start restarting password...");
         accountService.restartUserPassword(userPasswordResetDto);
         log.info("Password restarted successfully!");
@@ -169,26 +166,9 @@ public class AccountController {
                 .body("Password set successfully!");
     }
 
-    @PatchMapping("/account/edit-data/{userId}")
-    public ResponseEntity<GetUserBasicInfoDto>editUser(@PathVariable Long userId, HttpServletRequest request, HttpServletResponse response, @Valid @RequestBody UserEditDataDto userEditDataDto) throws InvalidPasswordException, EmailTakenException, UsernameTakenException, InvalidCredentialsException {
-        log.info("Start editing user...");
-        var updatedUser = accountService.editUserData(userId, userEditDataDto, request, response);
-        log.info("User edited successfully!");
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(updatedUser);
-    }
-
-    @GetMapping("/account/get-user")
-    public ResponseEntity<GetUserBasicInfoDto> getUserData(HttpServletRequest request) {
-        log.info("Start getting user...");
-        var user = accountService.getUser(request);
-        log.info("User found successfully!");
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(user);
-    }
 
     @GetMapping("/account/check")
-    public ResponseEntity<Void> checkIsAuthenticated() {
-        return ResponseEntity.status(HttpStatus.OK).build();
+    public ResponseEntity<String> checkIsAuthenticated() {
+        return ResponseEntity.ok(customUserDetailsService.loadUserDetailsFromSecurityContext().getUsername());
     }
 }

@@ -1,0 +1,27 @@
+%! Author = Mateusz
+%! Date = 30/11/2025
+
+\subsubsection{Panel użytkownika}
+\label{subsubsec:panel-uzytkownika}
+
+\cardendpoint {EP01} {/public/user-dashboard/profile/\{targetUsername\}} {Pobierz profil innego użytkownika (widok publiczny)} {%
+    \begin{tabitemize}
+        \item \textbf{targetUsername}: String (nazwa użytkownika w ścieżce URL)
+    \end{tabitemize}
+} {Brak} {200 OK, 404 Not Found} {%
+    \begin{tabitemize}
+        \item \textbf{profile}: UserProfileDto, zawiera:
+        \begin{itemize}
+            \item \textbf{username}: String
+            \item \textbf{profilePhoto}: String (URL)
+            \item \textbf{followersCount}: Integer
+            \item \textbf{followedCount}: Integer
+            \item \textbf{friendsCount}: Integer
+            \item \textbf{photosCount}: Integer
+            \item \textbf{mostPopularPhotos}: List<ImageDto>
+        \end{itemize}
+        \item \textbf{friendStatus}: UserFriendStatus
+        \item \textbf{isFollowing}: Boolean
+        \item \textbf{isOwnProfile}: Boolean
+    \end{tabitemize}
+}

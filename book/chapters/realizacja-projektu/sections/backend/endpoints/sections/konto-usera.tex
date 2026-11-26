@@ -1,0 +1,28 @@
+%! Author = Mateusz
+%! Date = 30/11/2025
+
+\subsubsection{Konto użytkownika – rejestracja, logowanie, hasło}
+\label{subsubsec:konto-usera}
+
+\cardendpoint
+{EP07}
+{/public/account/register}
+{Zarejestruj nowego użytkownika}
+{%
+    \begin{tabitemize}
+        \item \textbf{body}: UserRegisterDto, zawiera:
+        \begin{itemize}
+            \item \textbf{username}: String
+            \item \textbf{email}: String
+            \item \textbf{password}: String
+        \end{itemize}
+    \end{tabitemize}
+}
+{Brak}
+{201 Created, 401 Unauthorized, 409 Conflict, 422 Unprocessable Entity, 500 Internal Server Error}
+{%
+    \begin{tabitemize}
+        \item \textbf{body}: String (komunikat)
+        \item JWT tokeny ustawione w ciasteczkach HTTP-only
+    \end{tabitemize}
+}

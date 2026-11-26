@@ -1,0 +1,170 @@
+%! Author = Adam
+%! Date = 22/11/2025
+
+\subsubsection{Scenariusze przypadków użycia dla panelu użytkownika}
+
+\usecasecard{tab:pu27-dodaj-spota}{Dodanie spota w panelu użytkownika}{%
+    \ucpriority{M}
+    \ucactors{Użytkownik, Usługa do wyświetlania mapy, Usługa do przechowywania plików w chmurze}
+    \ucdesc{Użytkownik dodaje nowy spot poprzez panel.}
+    \ucpre{Użytkownik jest zalogowany i znajduje się w widoku panelu użytkownika.}
+    \ucpost{Nowy spot został zapisany i jest widoczny na mapie oraz w panelu użytkownika.}
+    \ucmain{%
+        \begin{enumerate}[nosep,leftmargin=16pt,labelindent=0pt]
+            \item Użytkownik wybiera opcję „Dodaj spota”.
+            \item Użytkownik uzupełnia podstawowe informacje o spocie (nazwa, opis, tagi).
+            \item Użytkownik wskazuje lokalizację spota na mapie.
+            \item Użytkownik dodaje zdjęcia/filmy do spota.
+            \item Użytkownik zapisuje spota.
+            \item System zapisuje dane spota (oraz pliki w chmurze) i aktualizuje mapę.
+        \end{enumerate}
+    }
+    \ucalt{%
+        \begin{enumerate}[nosep,leftmargin=21pt,labelindent=0pt,label={}]
+            \item[3a.] Podane dane wejściowe są niepoprawne – system wyświetla komunikat i zaznacza wymagające poprawy pola.
+        \end{enumerate}
+    }
+}
+
+\usecasecard{tab:pu28-profil-wlasny}{Przeglądanie profilu użytkownika}{%
+    \ucpriority{M}
+    \ucactors{Użytkownik}
+    \ucdesc{Użytkownik przegląda profil (lista spotów, media, podstawowe dane).}
+    \ucpre{Brak}
+    \ucpost{Wyświetlony jest widok profilu użytkownika wraz z jego zawartością.}
+    \ucmain{%
+        \begin{enumerate}[nosep,leftmargin=16pt,labelindent=0pt]
+            \item Użytkownik otwiera profil.
+            \item System pobiera dane profilu (informacje podstawowe, spoty, media).
+            \item System wyświetla dane w odpowiednich sekcjach (spoty, zdjęcia, filmy, komentarze).
+        \end{enumerate}
+    }
+    \ucalt{%
+        \begin{enumerate}[nosep,leftmargin=21pt,labelindent=0pt,label={}]
+            \item[2a.] Wystąpił błąd podczas pobierania danych użytkownika – system wyświetla informację o błędzie.
+        \end{enumerate}
+    }
+}
+
+\usecasecard{tab:pu30-dodaj-znajomego}{Dodanie użytkownika do znajomych}{%
+    \ucpriority{M}
+    \ucactors{Użytkownik}
+    \ucdesc{Użytkownik wysyła lub akceptuje zaproszenie do znajomych.}
+    \ucpre{Użytkownik jest zalogowany i przegląda profil innego użytkownika.}
+    \ucpost{Relacja „znajomy” została utworzona lub zaproszenie czeka na akceptację.}
+    \ucmain{%
+        \begin{enumerate}[nosep,leftmargin=16pt,labelindent=0pt]
+            \item Użytkownik klika przycisk „Dodaj do znajomych”.
+            \item System sprawdza, czy relacja już istnieje.
+            \item System tworzy nowe zaproszenie.
+            \item System informuje o statusie o wysłaniu zaproszenia.
+        \end{enumerate}
+    }
+    \ucalt{Brak istotnych alternatywnych przepływów.}
+}
+
+\usecasecard{tab:pu31-spolecznosci}{Przeglądanie społeczności}{%
+    \ucpriority{M}
+    \ucactors{Użytkownik}
+    \ucdesc{Użytkownik przegląda społeczności, grupy lub listy znajomych powiązane z aplikacją.}
+    \ucpre{Użytkownik jest zalogowany.}
+    \ucpost{Lista społeczności lub znajomych została wyświetlona.}
+    \ucmain{%
+        \begin{enumerate}[nosep,leftmargin=16pt,labelindent=0pt]
+            \item Użytkownik przechodzi do sekcji społeczności.
+            \item System pobiera listę społeczności i znajomych użytkownika.
+            \item System wyświetla listę z możliwością przechodzenia do profili i czatów.
+        \end{enumerate}
+    }
+    \ucalt{%
+        \begin{enumerate}[nosep,leftmargin=21pt,labelindent=0pt,label={}]
+            \item[2a.] Nie udało się pobrać danych – system wyświetla komunikat o błędzie.
+        \end{enumerate}
+    }
+}
+
+\usecasecard{tab:pu39-przegladaj-dodane-spoty}{Przeglądanie dodanych spotów}{%
+    \ucpriority{M}
+    \ucactors{Użytkownik, Usługa do wyświetlania mapy}
+    \ucdesc{Użytkownik przegląda listę/siatkę spotów, które sam dodał.}
+    \ucpre{Użytkownik jest zalogowany i znajduje się w widoku panelu użytkownika lub sekcji „Moje spoty”.}
+    \ucpost{Lista dodanych spotów użytkownika została wyświetlona (np. na mapie i/lub w formie listy).}
+    \ucmain{%
+        \begin{enumerate}[nosep,leftmargin=16pt,labelindent=0pt]
+            \item Użytkownik przechodzi do sekcji „Moje spoty”.
+            \item System pobiera listę spotów dodanych przez użytkownika.
+            \item System wyświetla listę spotów oraz znaczniki na mapie.
+            \item Użytkownik wybiera spota, aby przejść do jego szczegółów.
+        \end{enumerate}
+    }
+    \ucalt{%
+        \begin{enumerate}[nosep,leftmargin=21pt,labelindent=0pt,label={}]
+            \item[2a.] Użytkownik nie dodał jeszcze żadnego spota – system wyświetla komunikat i proponuje dodanie pierwszego spota.
+        \end{enumerate}
+    }
+}
+
+\usecasecard{tab:pu40-edytuj-dane-uzytkownika}{Edycja danych użytkownika}{%
+    \ucpriority{M}
+    \ucactors{Użytkownik}
+    \ucdesc{Użytkownik modyfikuje swoje dane profilu (np. nazwę, opis, avatar).}
+    \ucpre{Użytkownik jest zalogowany i znajduje się w widoku edycji profilu.}
+    \ucpost{Zaktualizowane dane profilu są zapisane i widoczne w aplikacji.}
+    \ucmain{%
+        \begin{enumerate}[nosep,leftmargin=16pt,labelindent=0pt]
+            \item Użytkownik otwiera widok edycji profilu.
+            \item Użytkownik wprowadza zmiany w danych profilu.
+            \item Użytkownik zapisuje zmiany.
+            \item System waliduje dane i zapisuje zaktualizowany profil.
+        \end{enumerate}
+    }
+    \ucalt{%
+        \begin{enumerate}[nosep,leftmargin=21pt,labelindent=0pt,label={}]
+            \item[4a.] Dane są niepoprawne lub niekompletne – system wyświetla komunikat o błędzie i zaznacza pola do poprawy.
+        \end{enumerate}
+    }
+}
+
+\usecasecard{tab:pu41-przegladaj-media-spotow}{Przeglądanie dodanych mediów do spotów}{%
+    \ucpriority{M}
+    \ucactors{Użytkownik, Usługa do przechowywania plików w chmurze}
+    \ucdesc{Użytkownik przegląda media (zdjęcia i filmy) powiązane ze spotami, które dodał.}
+    \ucpre{Użytkownik jest zalogowany i znajduje się w sekcji mediów.}
+    \ucpost{Lista lub galeria mediów powiązanych ze spotami użytkownika została wyświetlona; w przypadku filmów możliwe jest ich odtworzenie.}
+    \ucmain{%
+        \begin{enumerate}[nosep,leftmargin=16pt,labelindent=0pt]
+            \item Użytkownik otwiera sekcję przeglądania mediów dodanych do spotów.
+            \item System pobiera metadane mediów z usługi przechowywania plików.
+            \item System wyświetla listę/galerię mediów z podstawowymi informacjami (typ medium, data dodania).
+            \item Użytkownik wybiera element listy; w przypadku filmu system uruchamia jego odtwarzanie.
+        \end{enumerate}
+    }
+    \ucalt{%
+        \begin{enumerate}[nosep,leftmargin=21pt,labelindent=0pt,label={}]
+            \item[2a.] Użytkownik nie dodał jeszcze żadnych mediów – system wyświetla informację o braku mediów.
+            \item[2b.] Nie udało się pobrać danych z usługi przechowywania plików – system wyświetla komunikat o błędzie.
+        \end{enumerate}
+    }
+}
+
+\usecasecard{tab:pu43-przegladaj-komentarze-spotow}{Przeglądanie dodanych komentarzy do spotów}{%
+    \ucpriority{M}
+    \ucactors{Użytkownik}
+    \ucdesc{Użytkownik przegląda komentarze dodane do spotów, które sam utworzył.}
+    \ucpre{Użytkownik jest zalogowany i otwiera sekcję komentarzy do swoich spotów.}
+    \ucpost{Lista komentarzy do spotów użytkownika została wyświetlona.}
+    \ucmain{%
+        \begin{enumerate}[nosep,leftmargin=16pt,labelindent=0pt]
+            \item Użytkownik przechodzi do sekcji komentarzy do własnych spotów.
+            \item System pobiera komentarze powiązane ze spotami użytkownika.
+            \item System wyświetla komentarze (np. w kolejności chronologicznej).
+        \end{enumerate}
+    }
+    \ucalt{%
+        \begin{enumerate}[nosep,leftmargin=21pt,labelindent=0pt,label={}]
+            \item[2a.] Żaden z spotów użytkownika nie ma komentarzy – system wyświetla odpowiednią informację.
+            \item[3a.] Nie udało się pobrać komentarzy – system wyświetla komunikat o błędzie.
+        \end{enumerate}
+    }
+}
+
